@@ -97,7 +97,6 @@ void getConfigformEeprom()
         configured = true;
     }
 }
-
 void writeConfigToEeprom(String eId, String eSsid, String ePassword, String eIp)
 {
     int address = 0;
@@ -111,48 +110,46 @@ void writeConfigToEeprom(String eId, String eSsid, String ePassword, String eIp)
     EEPROM.writeString(address, eIp);
     EEPROM.commit();
 }
+String getStringFormatUriFormRawString(String rawString, int srcIndex, int dstIndex)
+{
+    int i = srcIndex;
+    String resString = "";
+    while (i < dstIndex)
+    {
+        if (rawString[i] == '%')
+        {
+            String strQueue = "";
+            strQueue += rawString[i + 1];
+            strQueue += rawString[i + 2];
+            uint8_t tempInt = (uint8_t)strtol(stringToCharArray(strQueue), NULL, 16);
+            resString += (char)tempInt;
+            i += 3;
+        }
+        else if (rawString[i] == '+')
+        {
+            resString += ' ';
+            i++;
+        }
+        else
+        {
+            resString += rawString[i];
+            i++;
+        }
+    }
+    return resString;
+}
 void myStringConvert(String rawvalue)
 {
 
     String tempstr = "";
-    String id = "";
-    String ssid = "";
-    String passwd = "";
-    String ip = "";
     for (int i = rawvalue.indexOf("boxconfigappmanual"); i < rawvalue.indexOf("&endvalue=ghend") + 15; i++)
     {
         tempstr += rawvalue[i];
     }
-    for (int i = tempstr.indexOf("?id") + 4; i < tempstr.indexOf("&ssid"); i++)
-    {
-        id += tempstr[i];
-    }
-    for (int i = tempstr.indexOf("&ssid") + 6; i < tempstr.indexOf("&passwd"); i++)
-    {
-        if (tempstr[i] == '+')
-        {
-            ssid += " ";
-        }
-        else
-        {
-            ssid += tempstr[i];
-        }
-    }
-    for (int i = tempstr.indexOf("&passwd") + 8; i < tempstr.indexOf("&ip"); i++)
-    {
-       if (tempstr[i] == '+')
-        {
-            passwd += " ";
-        }
-        else
-        {
-            passwd += tempstr[i];
-        }
-    }
-    for (int i = tempstr.indexOf("&ip") + 4; i < tempstr.indexOf("&endvalue=ghend"); i++)
-    {
-        ip += tempstr[i];
-    }
+    String id = getStringFormatUriFormRawString(tempstr, tempstr.indexOf("?id") + 4, tempstr.indexOf("&ssid"));
+    String ssid = getStringFormatUriFormRawString(tempstr, tempstr.indexOf("&ssid") + 6, tempstr.indexOf("&passwd"));
+    String passwd = getStringFormatUriFormRawString(tempstr, tempstr.indexOf("&passwd") + 8, tempstr.indexOf("&ip"));
+    String ip = getStringFormatUriFormRawString(tempstr, tempstr.indexOf("&ip") + 4, tempstr.indexOf("&endvalue=ghend"));
     Serial.print("id is: ");
     Serial.println(id);
     Serial.print("ssid is: ");
@@ -163,13 +160,13 @@ void myStringConvert(String rawvalue)
     Serial.println(ip);
     if (id != "" && ssid != "" && passwd != "" && ip != "")
     {
-        writeConfigToEeprom(id, ssid, passwd, ip);
-    }else
+        writeConfigToEeprom(id, ssid, passwd, ip);       
+        Serial.println("this value save to eeprom done !!!!!!");
+    }
+    else
     {
         Serial.println("this value do not save to eeprom !!!");
     }
-    
-
 }
 void ap_getSettingMode()
 {
@@ -185,7 +182,7 @@ void ap_getSettingMode()
             Serial.println("New Client.");
             String currentLine = "";
             while (client.connected() && currentTime - previousTime <= timeoutTime)
-            { // loop while the client's connected
+            { 
                 currentTime = millis();
                 if (client.available())
                 {
@@ -202,6 +199,7 @@ void ap_getSettingMode()
                             client.println();
                             // xử lý  hearder
                             myStringConvert(header);
+                            getConfigformEeprom();
 
                             // print http to slient
                             client.println("<!DOCTYPE html><html lang=\"en\">");
@@ -232,23 +230,23 @@ void ap_getSettingMode()
                             client.println("<input type=\"hidden\" name=\"endvalue\" value=\"ghend\"><button type=\"submit\">save</button></form>");
                             client.println("</div></div></body></html>");
                             client.println();
-                            // Break out of the while loop
+                            
                             break;
                         }
                         else
-                        { // if you got a newline, then clear currentLine
+                        { 
                             currentLine = "";
                         }
                     }
                     else if (c != '\r')
-                    {                     // if you got anything else but a carriage return character,
-                        currentLine += c; // add it to the end of the currentLine
+                    {                     
+                        currentLine += c; 
                     }
                 }
             }
-            // Clear the header variable
+            
             header = "";
-            // Close the connection
+            
             client.stop();
         }
     }
@@ -268,13 +266,5 @@ void setup()
 
 void loop()
 {
-    // Serial.print("id is: ");
-    // Serial.println(idBox);
-    // Serial.print("ssid is: ");
-    // Serial.println(sta_ssid);
-    // Serial.print("passwd is: ");
-    // Serial.println(sta_password);
-    // Serial.print("ip is: ");
-    // Serial.println(ipServer);
-    // delay(500);
+    
 }
