@@ -10,12 +10,12 @@ int sophieu = 0;
 int sophieutruocdo = 0;
 
 
-const char *ssid = "Young Union Office";
-const char *password = "Lolamdi!";//Lolamdi!
+const char *ssid = "3D Sinh vien";
+const char *password = "17151032@@";//Lolamdi!
 String myStr;
 WiFiClient client;
 HTTPClient http;
-String serverName = "http://192.168.1.110/getvalue.php?id=thung1&value=";
+String serverName = "https://194.163.35.217/getvalue.php?id=thung2&value=";
 
 void setup()
 {
@@ -48,7 +48,7 @@ int putData()
     return temp;
 }
 
-void loop()
+void loop1()
 {
 
     a = digitalRead(ss1);
@@ -128,4 +128,15 @@ co1:
     }
       digitalWrite(led ,HIGH);
     Serial.println(sophieu); 
+ }
+ void loop(){
+     for (int i = 0; i < 150; i++)
+     {
+         
+        while (putData() != 200);
+         sophieu++;
+         delay(1000);
+
+     }
+     
  }

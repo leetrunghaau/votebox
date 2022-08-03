@@ -1,4 +1,6 @@
 #include <WiFi.h>
+#include <string.h>
+#include "EEPROM.h" // address 0 is configured, 1 - 4 is vote number, 5 -> id -> ip -> ssid -> password -> ip
 // io var
 #define internalButton 0
 #define internalLed 2
@@ -6,15 +8,29 @@
 #define bootButton 25
 #define settingButton 24
 
+String sta_ssid = "";
+String sta_password = "";
+String ipServer = "";
+String idBox = "";
+
 // wifi config votebox
-const char *ssid = "vote box config";
-const char *password = "12345679";
+String ap_ssid = "vote box config";
+String ap_password = "12345679";
 WiFiServer server(80);
 String header;
 unsigned long currentTime = millis();
 unsigned long previousTime = 0;
 const long timeoutTime = 2000;
+bool configured = false;
 
+char *stringToCharArray(String str)
+{
+    if (str.length() != 0)
+    {
+        char *p = const_cast<char *>(str.c_str());
+        return p;
+    }
+}
 void io_init()
 {
     Serial.begin(115200);
@@ -24,16 +40,76 @@ void io_init()
     pinMode(bootButton, INPUT);
     pinMode(settingButton, INPUT);
 }
+void eeprom_init()
+{
+    Serial.println("\neeprom init\n");
+    if (!EEPROM.begin(1000))
+    {
+        Serial.println("Failed to initialise EEPROM");
+        Serial.println("Restarting...");
+        delay(1000);
+        ESP.restart();
+    }
+}
 void apWifi_init()
 {
 
     Serial.print("ap WiFi with ");
-    Serial.print(ssid);
+    Serial.print(ap_ssid);
     Serial.print(" with password ");
-    Serial.print(password);
+    Serial.print(ap_password);
     Serial.print(" and ip is: ");
-    WiFi.softAP(ssid, password);
+    WiFi.softAP(stringToCharArray(ap_ssid), stringToCharArray(ap_password));
     Serial.println(WiFi.softAPIP());
+}
+void wifi_sta_init()
+{
+    Serial.print("Connecting to WiFi ");
+    Serial.print(sta_ssid);
+    Serial.print(" with password ");
+    Serial.print(sta_password);
+    Serial.print(" and status is: ...");
+    WiFi.begin(stringToCharArray(sta_ssid), stringToCharArray(sta_password));
+    while (WiFi.status() != WL_CONNECTED)
+    {
+        delay(500);
+        Serial.print(".");
+    }
+    Serial.print("done with ip: ");
+    Serial.println(WiFi.localIP());
+}
+void getConfigformEeprom()
+{
+    if (EEPROM.read(0) == 200)
+    {
+        int tempaddress = 0;
+        configured = true;
+        idBox = EEPROM.readString(5);
+        tempaddress = 6 + idBox.length();
+        sta_ssid = EEPROM.readString(tempaddress);
+        tempaddress += sta_ssid.length() + 1;
+        sta_password = EEPROM.readString(tempaddress);
+        tempaddress += sta_password.length() + 1;
+        ipServer = EEPROM.readString(tempaddress);
+    }
+    else
+    {
+        configured = true;
+    }
+}
+
+void writeConfigToEeprom(String eId, String eSsid, String ePassword, String eIp)
+{
+    int address = 0;
+    EEPROM.write(0, 200);
+    EEPROM.writeString(5, eId);
+    address = 6 + eId.length();
+    EEPROM.writeString(address, eSsid);
+    address += eSsid.length() + 1;
+    EEPROM.writeString(address, ePassword);
+    address += ePassword.length() + 1;
+    EEPROM.writeString(address, eIp);
+    EEPROM.commit();
 }
 void myStringConvert(String rawvalue)
 {
@@ -53,11 +129,25 @@ void myStringConvert(String rawvalue)
     }
     for (int i = tempstr.indexOf("&ssid") + 6; i < tempstr.indexOf("&passwd"); i++)
     {
-        ssid += tempstr[i];
+        if (tempstr[i] == '+')
+        {
+            ssid += " ";
+        }
+        else
+        {
+            ssid += tempstr[i];
+        }
     }
     for (int i = tempstr.indexOf("&passwd") + 8; i < tempstr.indexOf("&ip"); i++)
     {
-        passwd += tempstr[i];
+       if (tempstr[i] == '+')
+        {
+            passwd += " ";
+        }
+        else
+        {
+            passwd += tempstr[i];
+        }
     }
     for (int i = tempstr.indexOf("&ip") + 4; i < tempstr.indexOf("&endvalue=ghend"); i++)
     {
@@ -71,6 +161,15 @@ void myStringConvert(String rawvalue)
     Serial.println(passwd);
     Serial.print("ip is: ");
     Serial.println(ip);
+    if (id != "" && ssid != "" && passwd != "" && ip != "")
+    {
+        writeConfigToEeprom(id, ssid, passwd, ip);
+    }else
+    {
+        Serial.println("this value do not save to eeprom !!!");
+    }
+    
+
 }
 void ap_getSettingMode()
 {
@@ -120,7 +219,17 @@ void ap_getSettingMode()
                             client.println("body {background-color: #328f8a;background-image: linear-gradient(45deg, #328f8a, #08ac4b);font-family: \"Roboto\", sans-serif;-webkit-font-smoothing: antialiased;-moz-osx-font-smoothing: grayscale;}");
                             client.println("</style></head>");
                             client.println("<body><div class=\"login-page\"><div class=\"form\"><div class=\"login\"><div class=\"login-header\"><h3>votes box setting</h3></div></div>");
-                            client.println("<form class=\"login-form\" method=\"get\" action=\"boxconfigappmanual\"><input type=\"text\" placeholder=\"id\" name=\"id\"/><input type=\"text\" placeholder=\"SSID\" name=\"ssid\"/><input type=\"password\" placeholder=\"password\" name=\"passwd\"/><input type=\"text\" placeholder=\"IP\" name=\"ip\"/><input type=\"hidden\" name=\"endvalue\" value=\"ghend\"><button type=\"submit\">save</button></form>");
+                            client.println("<form class=\"login-form\" method=\"get\" action=\"boxconfigappmanual\">");
+                            client.print("<input type=\"text\" placeholder=\"id\" name=\"id\" value=\"");
+                            client.print(idBox);
+                            client.print("\"/><input type=\"text\" placeholder=\"SSID\" name=\"ssid\" value=\"");
+                            client.print(sta_ssid);
+                            client.print("\"/><input type=\"password\" placeholder=\"password\" name=\"passwd\" value=\"");
+                            client.print(sta_password);
+                            client.print("\"/><input type=\"text\" placeholder=\"IP\" name=\"ip\" value=\"");
+                            client.print(ipServer);
+                            client.print("\"/>");
+                            client.println("<input type=\"hidden\" name=\"endvalue\" value=\"ghend\"><button type=\"submit\">save</button></form>");
                             client.println("</div></div></body></html>");
                             client.println();
                             // Break out of the while loop
@@ -147,17 +256,25 @@ void ap_getSettingMode()
 
 void setup()
 {
-
     io_init();
-    Serial.println(ssid);
+    eeprom_init();
+    getConfigformEeprom();
     if (digitalRead(bootButton) == 0)
     {
         ap_getSettingMode();
     }
+    wifi_sta_init();
 }
 
 void loop()
 {
-    Serial.println("loooooooooooop");
-    delay(500);
+    // Serial.print("id is: ");
+    // Serial.println(idBox);
+    // Serial.print("ssid is: ");
+    // Serial.println(sta_ssid);
+    // Serial.print("passwd is: ");
+    // Serial.println(sta_password);
+    // Serial.print("ip is: ");
+    // Serial.println(ipServer);
+    // delay(500);
 }

@@ -20,7 +20,14 @@ void myStringConvert(String rawvalue)
     }
     for (int i = tempstr.indexOf("&ssid") + 6; i < tempstr.indexOf("&passwd"); i++)
     {
-        ssid += tempstr[i];
+        if (tempstr[i] == " ")
+        {
+            ssid += " ";
+        }else{
+            ssid += tempstr[i];
+        }
+        
+        
     }
     for (int i = tempstr.indexOf("&passwd") + 8; i < tempstr.indexOf("&ip"); i++)
     {
