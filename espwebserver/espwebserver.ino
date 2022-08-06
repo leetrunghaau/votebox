@@ -138,7 +138,7 @@ String getStringFormatUriFormRawString(String rawString, int srcIndex, int dstIn
     }
     return resString;
 }
-void myStringConvert(String rawvalue)
+void saveConfigFormHeader(String rawvalue)
 {
 
     String tempstr = "";
@@ -160,7 +160,7 @@ void myStringConvert(String rawvalue)
     Serial.println(ip);
     if (id != "" && ssid != "" && passwd != "" && ip != "")
     {
-        writeConfigToEeprom(id, ssid, passwd, ip);       
+        writeConfigToEeprom(id, ssid, passwd, ip);
         Serial.println("this value save to eeprom done !!!!!!");
     }
     else
@@ -182,7 +182,7 @@ void ap_getSettingMode()
             Serial.println("New Client.");
             String currentLine = "";
             while (client.connected() && currentTime - previousTime <= timeoutTime)
-            { 
+            {
                 currentTime = millis();
                 if (client.available())
                 {
@@ -198,9 +198,8 @@ void ap_getSettingMode()
                             client.println("Connection: close");
                             client.println();
                             // xử lý  hearder
-                            myStringConvert(header);
-                            getConfigformEeprom();
-
+                            saveConfigFormHeader(header);
+                    
                             // print http to slient
                             client.println("<!DOCTYPE html><html lang=\"en\">");
                             client.println("<head><meta charset=\"UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Document</title><style>");
@@ -222,7 +221,7 @@ void ap_getSettingMode()
                             client.print(idBox);
                             client.print("\"/><input type=\"text\" placeholder=\"SSID\" name=\"ssid\" value=\"");
                             client.print(sta_ssid);
-                            client.print("\"/><input type=\"password\" placeholder=\"password\" name=\"passwd\" value=\"");
+                            client.print("\"/><input type=\"text\" placeholder=\"password\" name=\"passwd\" value=\"");
                             client.print(sta_password);
                             client.print("\"/><input type=\"text\" placeholder=\"IP\" name=\"ip\" value=\"");
                             client.print(ipServer);
@@ -230,31 +229,29 @@ void ap_getSettingMode()
                             client.println("<input type=\"hidden\" name=\"endvalue\" value=\"ghend\"><button type=\"submit\">save</button></form>");
                             client.println("</div></div></body></html>");
                             client.println();
-                            
+
                             break;
                         }
                         else
-                        { 
+                        {
                             currentLine = "";
                         }
                     }
                     else if (c != '\r')
-                    {                     
-                        currentLine += c; 
+                    {
+                        currentLine += c;
                     }
                 }
             }
-            
+
             header = "";
-            
+
             client.stop();
         }
     }
 }
-
-void setup()
+void wifiConfig_init()
 {
-    io_init();
     eeprom_init();
     getConfigformEeprom();
     if (digitalRead(bootButton) == 0)
@@ -263,8 +260,12 @@ void setup()
     }
     wifi_sta_init();
 }
+void setup()
+{
+    io_init();
+    wifiConfig_init();
+}
 
 void loop()
 {
-    
 }

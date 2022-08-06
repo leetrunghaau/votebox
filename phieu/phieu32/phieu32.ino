@@ -1,21 +1,21 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <WiFiClient.h>
-#define ss1 4
-#define ss2 5
-#define led 13
+#define ss1 25
+#define ss2 26
+#define led 23
 int8_t a, b;
 int value = 0;
 int sophieu = 0;
 int sophieutruocdo = 0;
 
 
-const char *ssid = "3D Sinh vien";
-const char *password = "17151032@@";//Lolamdi!
+const char *ssid = "KERO";
+const char *password = "12345123";//Lolamdi!
 String myStr;
 WiFiClient client;
 HTTPClient http;
-String serverName = "https://194.163.35.217/getvalue.php?id=thung2&value=";
+String serverName = "https://172.20.10.2/getvalue.php?id=thung2&value=";
 
 void setup()
 {
@@ -48,7 +48,7 @@ int putData()
     return temp;
 }
 
-void loop1()
+void loop()
 {
 
     a = digitalRead(ss1);
@@ -129,14 +129,14 @@ co1:
       digitalWrite(led ,HIGH);
     Serial.println(sophieu); 
  }
- void loop(){
-     for (int i = 0; i < 150; i++)
-     {
+//  void loop(){
+//      for (int i = 0; i < 150; i++)
+//      {
          
-        while (putData() != 200);
-         sophieu++;
-         delay(1000);
+//         while (putData() != 200);
+//          sophieu++;
+//          delay(1000);
 
-     }
+//      }
      
- }
+//  }
