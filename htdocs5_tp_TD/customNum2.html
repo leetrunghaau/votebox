@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="assets/js/jquery.min.js"></script>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            background-color: #0e0e10;
+        }
+
+        .bn39 {
+            
+            background-image: linear-gradient(135deg, #008aff, #86d472);
+            border-radius: 6px;
+            box-sizing: border-box;
+            color: #ffffff;
+            display: block;
+            height: 50px;
+            font-size: 1.4em;
+            font-weight: 600;
+            padding: 4px;
+            position: relative;
+            text-decoration: none;
+            width: 7em;
+            z-index: 2;
+            margin: 20px;
+           
+        }
+
+        .bn39:hover {
+            color: #fff;
+        }
+
+        .bn39 .bn39span {
+            align-items: center;
+            background: #0e0e10;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            height: 100%;
+            transition: background 0.5s ease;
+            width: 100%;
+            color: #fff;
+            font-size: 20px;
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif
+        }
+        .bn39:hover .bn39span {
+            background: transparent;
+        }
+        b{
+            color: white;
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="width: 100%; height: 100%; display: flex; flex-direction: column;">
+        <h1 style="color: white;">Thùng 2</h1>
+        <div class="bn39">
+            <button class="bn39span" id="add">
+                Tăng
+            </button>
+        </div>
+        <div class="bn39">
+            <button class="bn39span" id="sub">
+                Giảm
+            </button>
+        </div>
+        <div class="bn39">
+            <button class="bn39span" id="zero">
+                về 0
+            </button>
+        </div>
+        <b>thùng phiếu: <b id="boxValue"></b> </b><br>
+        <b>số lỗi: <b id="erroNum"></b> </b><br>
+        <b>tổng số: <b id="sumNum"></b> </b> <br>
+        <b id="mysetHTML"> </b>
+        <div class="bn39">
+            <button class="bn39span" id="khoa">
+                khóa
+            </button>
+        </div>
+    </div>
+    <script>
+        document.getElementById("add").addEventListener("click", addFunction);
+        document.getElementById("sub").addEventListener("click", subFunction);
+        document.getElementById("zero").addEventListener("click", zeroFunction);
+        document.getElementById("khoa").addEventListener("click", khoaFunction);
+        function addFunction() {
+            $.get("customNum.php?id=thung2&value=add", function (data) {
+                console.log(data);
+            })
+        }
+        function subFunction() {
+            $.get("customNum.php?id=thung2&value=sub", function (data) {
+                console.log(data);
+            })
+        }
+        function zeroFunction() {
+            $.get("customNum.php?id=thung2&value=zero", function (data) {
+                console.log(data);
+            })
+        }
+        function khoaFunction(){
+            $.get("keyblock.php?value=thung2", function (data) {
+                console.log(data);
+            })
+        }
+        const boxValue = document.getElementById("boxValue");
+        const boxErroNum = document.getElementById("erroNum");
+        const boxSumNum = document.getElementById("sumNum");
+        const mysetHTML = document.getElementById("mysetHTML");
+        setInterval(function () {
+            $.get("showJson2.php", function (data) {
+                const myDataJson = JSON.parse(data);
+                boxValue.innerHTML = myDataJson.value;
+                boxErroNum.innerHTML = myDataJson.errorNum;
+                boxSumNum.innerHTML = myDataJson.value + myDataJson.errorNum;
+                if(myDataJson.sethtml == 0){
+                    mysetHTML.innerHTML = "khóa";
+                }
+                if(myDataJson.sethtml == 1){
+                    mysetHTML.innerHTML = "mở khóa";
+                }
+
+
+            });
+        }, 1000);
+
+    </script>
+</body>
+
+
+</html>

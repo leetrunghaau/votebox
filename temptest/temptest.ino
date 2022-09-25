@@ -1,84 +1,72 @@
-#include <string.h>
-char *stringToCharArray(String str)
-{
-    if (str.length() != 0)
-    {
-        char *p = const_cast<char *>(str.c_str());
-        return p;
-    }
-}
 
-String getStringFormatUriFormRawString(String rawString, int srcIndex, int dstIndex){
-    int i = srcIndex;
-    String resString = "";
-    while (i < dstIndex)
+#define ss1 26
+#define ss2 25
+int value = 0;
+
+void hauCount()
+{
+    int temp = 0;
+    Serial.print("poid 11111111111 : ");
+    Serial.print(temp);
+    if (digitalRead(ss1) == 0 && digitalRead(ss2) == 1) // vote start
     {
-        if (rawString[i] == '%')
+        temp++; // =1
+        Serial.print("poid 222222222 : ");
+        Serial.print(temp);
+        for (;;)
         {
-            String strQueue = "";
-            strQueue += rawString[i + 1];
-            strQueue += rawString[i + 2];
-            uint8_t tempInt = (uint8_t)strtol(stringToCharArray(strQueue), NULL, 16);
-            resString += (char)tempInt;
-            i+=3;
-        }
-        else
-        {
-            resString += rawString[i];
-            i++;
+            if (digitalRead(ss1) == 0 && digitalRead(ss2) == 0)
+            {
+                temp++; //=2
+                Serial.print("poid 3 : ");
+                Serial.print(temp);
+                for (;;)
+                {
+                    if (digitalRead(ss1) == 1 && digitalRead(ss2) == 0)
+                    {
+                        temp++; //=3
+                        Serial.print("poid 4444444 : ");
+                        Serial.print(temp);
+                        for (;;)
+                        {
+                            if (digitalRead(ss1) == 1 && digitalRead(ss2) == 1) // done
+                            {
+                                temp++; //=4 phiếu ++ ; return
+                                Serial.print("poid 5555 : ");
+                                Serial.print(temp);
+                                if (temp == 4)
+                                    ;
+                                {
+                                    Serial.print("doneeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee : ");
+                                    Serial.println(value++);
+                                    // writeVoteToEeprom(getVoteToEeprom() + 1);
+                                    return;
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            else if (digitalRead(ss1) == 0 && digitalRead(ss2) == 1) // niếu bị lỗi thì cũng releve vòng lặp để đếm số mới
+            {
+                temp--;
+                break;
+            }
         }
     }
-    return resString;
 }
 void setup()
 {
     Serial.begin(115200);
-    // String hexstring = "40";
-    // uint8_t number = (uint8_t)strtol(hexstring, NULL, 16);
-    // Serial.print("value is: ");
-    // Serial.println(number);
-
-    // String strss = "this is char array";
-    // Serial.print("char array is: ");
-    // Serial.println(strss);
-    // strss[1] = number;
-    // Serial.print("char array convert is: ");
-    // Serial.println(strss);
-
-    String stra = "lr%40va%26het%25"; //=lr@va&het%
-    // String resString = "";
-
-    // int i = 0;
-    // while (i < rawString.length())
-    // {
-    //     if (rawString[i] == '%')
-    //     {
-    //         String strQueue = "";
-    //         strQueue += rawString[i + 1];
-    //         strQueue += rawString[i + 2];
-    //         uint8_t tempInt = (uint8_t)strtol(stringToCharArray(strQueue), NULL, 16);
-    //         Serial.print("strQueue is: ");
-    //         Serial.println(strQueue);
-    //         Serial.print("strQueue then char is: ");
-    //         //Serial.println(char());
-
-    //         resString += (char)tempInt;
-    //         i+=3;
-    //     }
-    //     else
-    //     {
-    //         resString += rawString[i];
-    //         i++;
-    //     }
-    // }
-    // Serial.print("char array is: ");
-    // Serial.println(rawString);
-    // Serial.print("char array convert is: ");
-    // Serial.println(resString);
-    Serial.print("String pre format : ");
-    Serial.println(getStringFormatUriFormRawString(stra, 0, stra.length()));
+    pinMode(ss1, INPUT_PULLUP);
+    pinMode(ss2, INPUT_PULLUP);
 }
 
 void loop()
 {
+    hauCount();
+    Serial.print("sophieu: ");
+    Serial.println(value);
 }

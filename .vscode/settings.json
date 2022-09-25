@@ -1,4 +1,8 @@
 {
     "C_Cpp.errorSquiggles": "Disabled",
-    "liveServer.settings.port": 5501
+    "liveServer.settings.port": 5501,
+    "files.associations": {
+        "system_error": "cpp",
+        "algorithm": "cpp"
+    }
 }
