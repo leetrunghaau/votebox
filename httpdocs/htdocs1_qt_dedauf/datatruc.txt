@@ -1,1 +1,0 @@
-{"thung2":{"value":0,"errorNum":0,"total":500},"thung1":{"value":0,"errorNum":0,"total":500}}
